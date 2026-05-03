@@ -1,2 +1,14 @@
-{"name":"recuperacao-senha","version":"1.0.0","main":"server.js","scripts":{"start":"node server.js"},"dependencies":
-echo {name:recuperaca-senha,version:1.0.0,main:server.js,scripts:echo{"name":"recuperacao-senha","version":1.0.0","main":"server.js","scripts":{"start":"node server.js"},"dependencies":{"cors":"^2.8.5","express":"^4.18.2","mysql12":"^3.6.0"}}
+{
+  "name": "recuperacao-senha",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "express": "^4.22.1",
+    "mysql2": "^3.22.3"
+  }
+}
