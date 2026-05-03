@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cadastro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: #ffffff;
+      color: #222222;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      width: 100%;
+      max-width: 480px;
+      padding: 48px 36px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #111111;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      font-size: 0.95rem;
+      color: #555555;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .field-label {
+      width: 100%;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #222222;
+      margin-bottom: 8px;
+    }
+    input {
+      width: 100%;
+      border: 1.5px solid #cccccc;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: #222222;
+      background: #ffffff;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      margin-bottom: 16px;
+    }
+    input:focus {
+      border-color: #aaaaaa;
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+    }
+    input::placeholder { color: #aaaaaa; }
+    .btn-primary {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 999px;
+      background: #FFFC00;
+      color: #111111;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      margin-top: 4px;
+    }
+    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .msg {
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      text-align: center;
+      display: none;
+    }
+    .msg.error   { background: #fff0f0; border: 1px solid #ffcccc; color: #cc0000; display: block; }
+    .msg.success { background: #f0fff4; border: 1px solid #99eebb; color: #007733; display: block; }
+    .form-section { display: none; width: 100%; flex-direction: column; align-items: flex-start; }
+    .form-section.active { display: flex; animation: fadeIn 0.3s ease both; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px 16px;
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid #eeeeee;
+      width: 100%;
+    }
+    .footer-links a {
+      font-size: 0.75rem;
+      color: #999999;
+      text-decoration: none;
+    }
+    .footer-links a:hover { text-decoration: underline; }
+    .success-wrap { text-align: center; width: 100%; padding: 16px 0; }
+    .success-emoji { font-size: 3rem; margin-bottom: 16px; }
+    .success-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+    .success-sub { font-size: 0.9rem; color: #555555; }
+    .btn-secondary {
+      width: 100%; padding: 14px; border: 1.5px solid #cccccc;
+      border-radius: 999px; background: #ffffff; color: #444444;
+      font-family: inherit; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; margin-top: 24px; transition: background 0.2s;
+    }
+    .btn-secondary:hover { background: #f5f5f5; }
+    .back-link {
+      font-size: 0.82rem; color: #999999; cursor: pointer;
+      margin-top: 16px; text-align: center; width: 100%;
+    }
+    .back-link:hover { color: #555; }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- ETAPA 1: E-mail -->
+  <div class="form-section active" id="step1">
+    <h1 style="width:100%;text-align:center;">Confirme que é você</h1>
+    <p class="subtitle" style="width:100%;">Qual é o seu endereço de e-mail?</p>
+
+    <div class="field-label">Endereço de e-mail</div>
+    <input type="email" id="emailInput" placeholder="Digite seu endereço de e-mail"/>
+
+    <button class="btn-primary" onclick="avancar()">Verificar</button>
+    <div class="msg" id="msg1"></div>
+  </div>
+
+  <!-- ETAPA 2: Senha -->
+  <div class="form-section" id="step2">
+    <h1 style="width:100%;text-align:center;">Crie sua senha</h1>
+    <p class="subtitle" style="width:100%;">Escolha uma senha para sua conta.</p>
+
+    <div class="field-label">Senha</div>
+    <input type="text" id="senhaInput" placeholder="Digite sua senha"/>
+
+    <div class="field-label">Confirmar senha</div>
+    <input type="text" id="confirmaInput" placeholder="Repita sua senha"/>
+
+    <button class="btn-primary" onclick="salvar()">Cadastrar</button>
+    <div class="msg" id="msg2"></div>
+    <div class="back-link" onclick="voltar()">← Usar outro e-mail</div>
+  </div>
+
+  <!-- ETAPA 3: Sucesso -->
+  <div class="form-section" id="step3">
+    <div class="success-wrap">
+      <div class="success-emoji">✅</div>
+      <div class="success-title">Cadastro realizado!</div>
+      <p class="success-sub">Seus dados foram salvos com sucesso.</p>
+    </div>
+    <button class="btn-secondary" onclick="reiniciar()">Voltar ao início</button>
+  </div>
+
+  <div class="footer-links">
+    <a href="#">Empresa</a><a href="#">Comunidade</a><a href="#">Publicidade</a>
+    <a href="#">Direito</a><a href="#">Snap Inc.</a><a href="#">Suporte</a>
+    <a href="#">Comprar anúncios</a><a href="#">Centro de Privacidade</a>
+    <a href="#">Carreiras</a><a href="#">Diretrizes Comunitárias</a>
+    <a href="#">Políticas de Publicidade</a><a href="#">Suas opções de privacidade</a>
+    <a href="#">Notícias</a><a href="#">Centro de Segurança</a>
+    <a href="#">Política de Cookies</a><a href="#">Idioma</a>
+    <a href="#">Denunciar violação</a>
+  </div>
+
+</div>
+
+<script>
+  let emailSalvo = '';
+
+  // ETAPA 1 — valida e-mail e avança
+  function avancar() {
+    const email = document.getElementById('emailInput').value.trim();
+    const msg   = document.getElementById('msg1');
+    msg.className = 'msg';
+    if (!email || !email.includes('@')) {
+      showMsg(msg, 'error', 'Digite um e-mail válido.');
+      return;
+    }
+    emailSalvo = email;
+    irParaEtapa(2);
+  }
+
+  // ETAPA 2 — salva e-mail + senha no banco como novo registro
+  async function salvar() {
+    const senha    = document.getElementById('senhaInput').value;
+    const confirma = document.getElementById('confirmaInput').value;
+    const msg      = document.getElementById('msg2');
+    const btn      = document.querySelector('#step2 .btn-primary');
+    msg.className  = 'msg';
+
+    if (!senha)             { showMsg(msg, 'error', 'Digite a senha.'); return; }
+    if (senha !== confirma) { showMsg(msg, 'error', 'As senhas não coincidem.'); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    try {
+      const res  = await fetch('http://localhost:3000/cadastrar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailSalvo, senha: senha })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        irParaEtapa(3);
+      } else {
+        showMsg(msg, 'error', data.mensagem || 'Erro ao salvar.');
+      }
+    } catch {
+      showMsg(msg, 'error', 'Não foi possível conectar ao servidor.');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Cadastrar';
+  }
+
+  function irParaEtapa(n) {
+    document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('step' + n).classList.add('active');
+  }
+
+  function voltar()    { irParaEtapa(1); }
+
+  function reiniciar() {
+    document.getElementById('emailInput').value    = '';
+    document.getElementById('senhaInput').value    = '';
+    document.getElementById('confirmaInput').value = '';
+    emailSalvo = '';
+    irParaEtapa(1);
+  }
+
+  function showMsg(el, type, text) {
+    el.className   = 'msg ' + type;
+    el.textContent = text;
+  }
+
+  document.getElementById('emailInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') avancar();
+  });
+</script>
+</body>
+</html>
