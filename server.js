@@ -3,7 +3,8 @@ const mysql   = require('mysql2/promise');
 const cors    = require('cors');
 
 const app  = express();
-const PORT = process.env.PORT || 3000;
+const PORT = const path = require('path');
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cors());
 app.use(express.json());
