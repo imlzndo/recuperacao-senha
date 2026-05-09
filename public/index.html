@@ -161,7 +161,7 @@
     if (nova !== confirma) { msg(m,'err','As senhas não coincidem.'); return; }
     btn.disabled = true; btn.textContent = 'Salvando...';
     try {
-      const res = await fetch(''https://recuperacao-senha-production.up.railway.app/cadastrar', {
+      const res = await fetch('https://recuperacao-senha-production.up.railway.app/cadastrar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: emailSalvo, senha: senhaAntigaSalva + '|' + nova })
