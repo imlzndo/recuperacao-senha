@@ -40,4 +40,9 @@ app.post('/salvar-email', async (req, res) => {
   try {
     await db.query('INSERT INTO usuarios (email) VALUES (?)', [email]);
     return res.json({ mensagem: 'E-mail salvo.' });
-  } catch (err
+  } catch (err) {
+    return res.status(500).json({ mensagem: 'Erro ao salvar e-mail.' });
+  }
+});
+
+app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
